@@ -1,0 +1,44 @@
+```json
+[
+    {
+        "type_name": "人物",
+        "example": ["周明瑞"],
+        "explanation": "文本中的主要角色或提及的人物。"
+    },
+    {
+        "type_name": "身体部位",
+        "example": ["脑袋", "太阳穴", "手脚"],
+        "explanation": "描述中涉及的人体部位。"
+    },
+    {
+        "type_name": "感觉",
+        "example": ["头痛", "抽痛"],
+        "explanation": "人物感受到的生理或心理状态。"
+    },
+    {
+        "type_name": "动作",
+        "example": ["翻身", "捂头", "坐起"],
+        "explanation": "人物进行的动作或行为。"
+    },
+    {
+        "type_name": "状态",
+        "example": ["熟睡", "半睡半醒", "失去控制"],
+        "explanation": "人物所处的生理或心理状态。"
+    },
+    {
+        "type_name": "时间",
+        "example": ["大半夜"],
+        "explanation": "事件发生的具体时间或时间段。"
+    },
+    {
+        "type_name": "梦境",
+        "example": ["光怪陆离满是低语的梦境"],
+        "explanation": "描述中的梦境或梦境相关的场景。"
+    },
+    {
+        "type_name": "意志",
+        "example": ["集中意志", "意志飘忽"],
+        "explanation": "描述中涉及的人物意志或精神状态。"
+    }
+]
+```

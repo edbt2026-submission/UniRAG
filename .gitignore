@@ -1,0 +1,8 @@
+Data/**/*.jsonl
+Data/UltraDomain/*.jsonl
+__pycache__/
+*.pyc
+.env
+.vscode/
+.idea/
+*.log
