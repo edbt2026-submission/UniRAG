@@ -1,114 +1,246 @@
-# Step 1: Prepare Files
-1.1 Place the `.txt` files in the root directory of MyRAG.
+# UniRAG Project Description 🚀
 
-# Step 2: Run
+This project is a Retrieval-Augmented Generation (RAG) framework based on a knowledge graph. Through a series of detailed steps, it processes, analyzes, and constructs a Neo4j knowledge graph from raw text documents. Ultimately, it integrates with the Faiss vector database to achieve high-quality question answering.
 
-## 2.1 Split Documents
-`step0-0-document_splitter.py`
+Compared to traditional naive RAG, the advantage of this project lies in its use of the knowledge graph for deep, associative retrieval. This allows it to achieve significantly better answer quality than traditional RAG, even when using smaller language models (such as Qwen2.5-7B-Instruct).
 
-## 2.2 Analyze Text Segments
-`step0-1-0-segment_analysis.py`
+---
 
-Remember to uncomment `analyze_text_large`.
+## 📚 Table of Contents
 
-This step uses the official DeepSeek analysis, which supports JSON mode.
+* [Installation](#-installation)
+* [Workflow](#-workflow)
+* [Project Structure (Optional)](#-project-structure)
 
-However, the server may be congested, in which case you can switch to Silicon's DeepSeek, but it does **not** support JSON.
+---
 
-Also, the `analyze_text_large` step does not generate logger output, so it may run for a long time without any visible response. This should be fixed later.
+## 🛠️ Installation
 
-## 2.3 Check Analysis Results
-`step0-1-1-extra_conversion.py`
+Before you begin, please ensure that your system has **Python (3.10 recommended)**, **Anaconda (or Miniconda)**, and **Neo4j Database** installed.
 
-Results are saved in `{filename}_extract_result.jsonl`.  
-After the first run, you can check that the `entities` of each element are still strings and have not been parsed.
+### 1. Clone the Project
 
-The purpose of this step is to verify that `0-1-0` has correctly generated output. Proper JSON will be converted into a dictionary.
-
-Pay attention to the output of this step.
-
-If errors are detected, the invalid results in the extraction will be removed.
-
-**Important:** at this point, you need to re-run `step0-1-0-segment_analysis.py` to automatically fill in the removed errors.
-
-In other words, `0-1-0-segment_analysis.py` and `0-1-1-extra_conversion.py` are run in a loop repeatedly until there are no errors.
-
-Finally, check `{filename}_extract_result.jsonl`. The number of entries may decrease, but all `entities` should now be dictionaries.
-
-## 2.4 Convert to Format Ready for Merging
-`step0-2-node_file_conversion.py`
-
-Results are saved in `{filename}_EX.jsonl`.
-
-## 2.5 Perform Local Node Merging
-`step2_0_go_merge.py`
-
-This step may take a long time. Please be patient.
-
-Results are saved in `{filename}_merge.jsonl`.
-
-## 2.6 Merge Validation
-Filter out invalid merges.
-
-`step2-1-validate_merge.py`
-
-Generates `{filename}_final_merge.jsonl`.
-
-If invalid merges are detected, the step will theoretically handle them automatically and re-merge. No manual intervention is required.
-
-This step may also take some time.
-
-## 2.7 Create Merged Index, Prepare for Database Import
-`step2-2-node_merge.py`
-
-Generates `{filename}_EX_pro.jsonl`.
-
-# Step 3: Neo4j Graph Construction
-
-## 3.1 Start Your Neo4j
-Remember to modify the configuration in `Neo4j_tools.py`.
-
-## 3.2 Import Nodes into Neo4j
-`step3-0-import_nodes_to_Neo4j.py`
-
-After running, you can log in via the web interface to check the nodes.
-
-The `DeleteALL.py` file in the same folder can be run to delete the entire database in one click.
-
-## 3.3 Local Merge (Write to Local File)
-`step3-1-local_merge.py`
-
-Generates `{filename}_group_fusion.jsonl` — the list of entity groups to be merged.  
-Generates `{filename}_group_stay.jsonl` — the list of entity groups not to be merged (because they contain only one element and don’t require merging).
-
-## 3.4 Merge into Neo4j
-`step3-2-write_local_merge_to_Neo4j.py`
-
-Adds properties to all Group nodes.
-
-## 3.5 Global Merge
-`step3-3-global_merge.py`
-
-Generates `_group_before_global.jsonl`.
-
-When debugging, remember to comment out the `reset_jsonl_file` method.
-
-## 3.6 Write Global Merge into Neo4j
-`step3-4-write_global_merge_to_Neo4j.py`
-
-Visualize the graph.
-
-## 4.1 Vectorization and Database Storage
-`step-4-1-Embedding.py`
-
-## 4.2 Save Vectors into Local Vector Database
-`step-4-2-Faiss.py`
-
-Build the index using Faiss.
-
-Install Faiss first:
 ```bash
+git clone https://github.com/edbt2026-submission/UniRAG.git
+```
 
-pip install faiss-cpu
+### 2. Create and Activate Conda Environment
 
+We strongly recommend using Conda to manage the project environment to avoid package version conflicts.
+
+```
+# Create a new environment named UniRAG and specify the Python version
+conda create -n UniRAG python=3.10
+
+# Activate the environment
+conda activate UniRAG
+```
+
+### 3. Install Dependencies
+
+All required dependencies for the project are listed in the `requirements.txt` file.
+
+```
+# Use pip to install all dependencies
+pip install -r requirements.txt
+```
+
+### 4. Configure Neo4j Database
+
+Before building the graph, you need to ensure the Neo4j service is running and the connection information is correctly configured.
+
+**Important Note:**
+ Please open the `Neo4j_tools.py` file and modify the following connection settings according to your local Neo4j database configuration:
+
+- **URI** (e.g., `"bolt://localhost:7687"`)
+- **Username** (e.g., `"neo4j"`)
+- **Password** (e.g., `"your_password"`)
+
+### 5. Configure API Key
+
+For the initial build, you can try using a small text file placed in the corresponding directory.
+ Fill in the `API_KEY` information for an LLM platform, such as **DeepSeek** or **Silicon**.
+
+------
+
+## 🚀 Workflow
+
+Please execute the scripts in the following order to ensure the data processing pipeline runs correctly.
+
+### Step 1: Prepare Files
+
+Place your raw text documents in `.txt` format in the project's root directory.
+
+------
+
+### Step 2: Text Processing and Node Fusion
+
+This stage is responsible for splitting the raw text, analyzing it, extracting entities, and performing initial node fusion.
+
+#### Document Splitting
+
+```
+python step0-0-文档拆分器.py
+```
+
+**Purpose:** Splits the entire document into smaller, more manageable text chunks.
+
+#### Text Segment Analysis and Entity Extraction
+
+```
+python step0-1-0-文段分析.py
+```
+
+**Note:**
+
+- This step relies on DeepSeek's official API for entity and relationship extraction.
+- Please ensure you have configured the relevant API Key.
+- In the code, uncomment the `analyze_text_large` function as needed.
+
+#### Check and Clean Analysis Results
+
+```
+python step0-1-1-额外转换.py
+```
+
+**Purpose:**
+ This script validates the legality of the JSON results generated in the previous step.
+ It will remove entries with incorrect formats from the extraction results and generate a `{filename}_extract_result.jsonl` file.
+
+Please check the output of this script. If it reports that erroneous entries have been deleted, you need to rerun `step0-1-0-文段分析.py` to supplement the missing data.
+
+Ultimately, ensure that the `entities` fields in the `{filename}_extract_result.jsonl` file have all been successfully converted to dictionary format.
+
+#### Format Conversion
+
+```
+python step0-2-结点文件转换.py
+```
+
+**Purpose:** Converts the analysis results into an intermediate format ready for node fusion and saves it in the `{filename}_EX.jsonl` file.
+
+#### Local Node Fusion
+
+```
+python step2_0_go_merge.py
+```
+
+**Purpose:** Performs initial fusion calculations based on the relationships between entities.
+
+**Note:** This step is computationally intensive and may take a long time to run. Please be patient.
+ The results are saved in `{filename}_merge.jsonl`.
+
+#### Fusion Result Legality Validation
+
+```
+python step2-1-验证merge合法性.py
+```
+
+**Purpose:** Excludes potentially illegal fusions from the previous stage and generates the final `{filename}_final_merge.jsonl`.
+
+#### Create Fusion Index
+
+```
+python step2-2-结点融合.py
+```
+
+**Purpose:** Creates an index for the fused nodes, preparing them to be written to the graph database.
+ The results are saved in `{filename}_EX_pro.jsonl`.
+
+------
+
+### Step 3: Neo4j Knowledge Graph Construction
+
+This stage officially writes the processed data into the Neo4j database and performs graph-level fusion.
+
+#### Import Nodes into Database
+
+```
+python step3-0-结点入Neo4j.py
+```
+
+**Purpose:** Writes all base node data into Neo4j.
+ After running, you can log in to the Neo4j Browser to check if the nodes have been created successfully.
+
+**Tool:** The `DeleteALL.py` script in the same folder can be used to clear the entire database with one click, which is convenient for debugging.
+
+#### Generate Local Fusion Relationships
+
+```
+python step3-1-局部融合.py
+```
+
+**Purpose:** Computes and generates a list of entity groups that need to be fused locally (`{filename}_group_fusion.jsonl`).
+
+#### Import Local Fusion Relationships into Database
+
+```
+python step3-2-局部融合写进Neo4j.py
+```
+
+**Purpose:** Writes the fusion relationships generated in the previous step into Neo4j, adding properties to nodes of type `Group`.
+
+#### Calculate Global Fusion Relationships
+
+```
+python step3-3-全局融合.py
+```
+
+**Purpose:** Performs global fusion calculations across entity groups at the entire graph level, generating the `_group_before_global.jsonl` file.
+
+#### Import Global Fusion Relationships into Database
+
+```
+python step3-4-全局融合写進Neo4j.py
+```
+
+**Purpose:** Writes the global fusion relationships into Neo4j, completing the final construction of the knowledge graph.
+
+------
+
+### Step 4: Vectorization and Question Answering
+
+This stage creates vector indexes for the knowledge in the graph and starts the question-answering program.
+
+#### Text Vectorization
+
+```
+python step-4-1-Embedding.py
+```
+
+**Purpose:** Converts the text content of the nodes in the knowledge graph into vector representations.
+
+#### Build Faiss Vector Index
+
+```
+python step-4-2-Faiss.py
+```
+
+**Purpose:** Uses Faiss to build an efficient local vector database index for fast retrieval.
+
+#### Start Question Answering
+
+```
+python QA.py
+```
+
+**Configuration:**
+ You can modify and configure QA-related parameters and commands in the main function of the `QA.py` file.
+
+------
+
+## 📂 Project Structure
+
+```
+.
+├── UniRAG/
+│   ├── step0-0-文档拆分器.py
+│   ├── step0-1-0-文段分析.py
+│   ├── step0-1-1-额外转换.py
+│   ├── ... (all other py scripts)
+│   ├── Neo4j_tools.py
+│   └── QA.py
+├── your_document.txt
+├── requirements.txt
+└── README.md
 ```
